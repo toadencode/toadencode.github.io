@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>TOAD</title>
+<style>
+h2{user-select: none;}
+body{font-family:sans-serif;margin:20px;}
+textarea{width:100%;height:160px;}
+button{margin:5px 0;}
+.subtitle{color:#555;font-size:14px;margin-top:-10px;margin-bottom:15px;}
+</style>
+</head>
+<body>
+
+<h2>TOAD 🐸</h2>
+<div class="subtitle">Token‑Ordered Assignment Dictionary</div>
+
+<textarea id="a"></textarea>
+<button onclick="m1()">Encode</button>
+<button onclick="m2()">Decode</button>
+<textarea id="b" readonly></textarea>
+<button onclick="copyB()">Copy Results</button>
+
+<script>
+const q="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+,-./:;<=>?@[]^_`{|}~";
+
+function r1(x){
+let n=0n;
+for(let i of x)n=(n<<8n)+BigInt(i);
+let s="";
+while(n>0n){s=q[n%74n]+s;n/=74n;}
+return s||"0";
+}
+
+function r2(s){
+let n=0n;
+for(let c of s)n=n*74n+BigInt(q.indexOf(c));
+const r=[];
+while(n>0n){r.unshift(Number(n&255n));n>>=8n;}
+return new Uint8Array(r);
+}
+
+function r3(t){
+let o="";
+for(let c of t){
+const k=c.charCodeAt(0);
+o+=k>=33&&k<=126?String.fromCharCode(33+((k-33+47)%94)):c;
+}
+return o;
+}
+
+function r4(s){return new TextEncoder().encode(s);}
+function r5(b){return new TextDecoder().decode(b);}
+
+function r6(n){
+const r=[];
+let cp=0;
+while(r.length<n&&cp<=0x10FFFF){
+if(cp>=0xD800&&cp<=0xDFFF){cp=0xE000;continue;}
+if(cp===0x20||cp===0x09||cp===0x0A||cp===0x0D){cp++;continue;}
+if(cp<0x20||cp===0x7F){cp++;continue;}
+try{r.push(String.fromCodePoint(cp));}catch(e){}
+cp++;
+}
+if(r.length<n)throw"e";
+return r;
+}
+
+function m1(){
+const t=document.getElementById("a").value;
+if(!t)return;
+const f={},g={};
+for(let i=0;i<t.length;i++){
+const c=t[i];
+if(!f[c]){f[c]=0;g[c]=i;}
+f[c]++;
+}
+const u=Object.keys(f);
+u.sort((x,y)=>f[y]!==f[x]?f[y]-f[x]:g[x]-g[y]);
+const z=r6(u.length);
+const m={};
+for(let i=0;i<u.length;i++)m[u[i]]=z[i];
+let body="";
+for(const c of t)body+=m[c]+" ";
+const j=JSON.stringify(m);
+const u8=r4(j);
+const b64=btoa(String.fromCharCode(...u8));
+const rot=r3(b64);
+const h=r1(r4(rot));
+document.getElementById("b").value=h+"\n"+body;
+}
+
+function m2(){
+const raw=document.getElementById("a").value;
+if(!raw)return;
+const nl=raw.indexOf("\n");
+if(nl===-1){document.getElementById("b").value="err";return;}
+const h=raw.slice(0,nl);
+const body=raw.slice(nl+1);
+const bytes=r2(h);
+const rot=r5(bytes);
+const b64=r3(rot);
+const j=r5(Uint8Array.from(atob(b64),c=>c.charCodeAt(0)));
+const m=JSON.parse(j);
+const inv={};
+for(const k in m)inv[m[k]]=k;
+const parts=body.trim().split(" ");
+let out="";
+for(const p of parts)if(p in inv)out+=inv[p];
+document.getElementById("b").value=out;
+}
+
+function copyB(){
+  const t=document.getElementById("b");
+  t.select();
+  t.setSelectionRange(0, 999999);
+  navigator.clipboard.writeText(t.value);
+}
+</script>
+
+</body>
+</html>
