@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /google117834e32b682861.html
+Disallow: /google117834e32b682861
+Disallow: /robots.txt
+Disallow: /robots
